@@ -2,6 +2,10 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.5.0] - 2026-11-28
+- Recherche dans le terminal avec Ctrl+F : résultats surlignés, Entrée / Maj+Entrée pour passer de l'un à l'autre, option respecter la casse (Ctrl+F reste disponible dans vim, nano et htop ; Ctrl+Maj+F ouvre toujours la recherche)
+- Liens cliquables dans le terminal : Ctrl+clic ouvre l'adresse dans le navigateur
+
 ## [1.4.1] - 2026-11-28
 - Orbiter fonctionne désormais avec .NET 10, qui reçoit les correctifs de sécurité jusqu'en 2028 (.NET 8 n'est plus maintenu)
 - Fichiers légèrement plus petits

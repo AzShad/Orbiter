@@ -10,6 +10,7 @@ Prérequis : Windows 10 1809+ / 11 x64, avec Microsoft Edge WebView2 Runtime (d�
 ## Fonctionnalités
 - Terminal SSH en onglets (xterm-256color : couleurs, vim, htop, redimensionnement)
   - sélection = copier, clic droit = coller, Ctrl+Maj+C / Ctrl+Maj+V, Ctrl+molette = taille du texte
+  - **Ctrl+F** : rechercher dans le terminal (Entrée / Maj+Entrée pour naviguer) ; **Ctrl+clic** sur un lien pour l'ouvrir dans le navigateur
   - session terminée → touche **R** pour se reconnecter
 - Explorateur SFTP ouvert automatiquement à côté du terminal (ou onglet SFTP seul)
   - envoi par glisser-déposer depuis l'Explorateur Windows, fichiers et dossiers (récursif)

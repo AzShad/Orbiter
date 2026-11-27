@@ -67,6 +67,12 @@ public sealed class TerminalView : Grid, IDisposable
         core.Settings.IsStatusBarEnabled = false;
         core.SetVirtualHostNameToFolderMapping("orbiter.local", AppPaths.WebRoot, CoreWebView2HostResourceAccessKind.Allow);
         core.WebMessageReceived += OnWebMessage;
+        // le terminal ne quitte jamais sa page : les liens s'ouvrent dans le navigateur (Ctrl+clic)
+        core.NewWindowRequested += (_, a) => a.Handled = true;
+        core.NavigationStarting += (_, a) =>
+        {
+            if (!a.Uri.StartsWith("https://orbiter.local/", StringComparison.OrdinalIgnoreCase)) a.Cancel = true;
+        };
         core.Navigate("https://orbiter.local/terminal.html");
     }
 
@@ -103,7 +109,17 @@ public sealed class TerminalView : Grid, IDisposable
                 try { if (Clipboard.ContainsText()) clip = Clipboard.GetText(); } catch { }
                 if (!string.IsNullOrEmpty(clip)) Post(new { t = "paste", d = clip });
                 break;
+            case "open":
+                OpenLink(m.GetProperty("url").GetString());
+                break;
         }
+    }
+
+    /// <summary>Ouvre un lien du terminal dans le navigateur par défaut (http/https uniquement).</summary>
+    private static void OpenLink(string? url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")) return;
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true }); } catch { }
     }
 
     private static void TrySetClipboard(string text)

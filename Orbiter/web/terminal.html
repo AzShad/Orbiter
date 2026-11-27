@@ -9,12 +9,43 @@
   .xterm-viewport::-webkit-scrollbar { width: 10px; }
   .xterm-viewport::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 5px; }
   .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+
+  /* Barre de recherche (Ctrl+F) */
+  #find { position: absolute; top: 8px; right: 22px; z-index: 10; display: none; align-items: center; gap: 4px;
+          background: #22262e; border: 1px solid #3a3f4b; border-radius: 8px; padding: 5px 6px;
+          box-shadow: 0 6px 18px rgba(0,0,0,.45); font: 13px "Segoe UI", sans-serif; color: #d8dee9; }
+  #find.open { display: flex; }
+  #find input { width: 210px; background: #16181d; color: #d8dee9; border: 1px solid #3a3f4b; border-radius: 5px;
+                padding: 4px 7px; font: inherit; outline: none; }
+  #find input:focus { border-color: #00c8aa; }
+  #find input.none { border-color: #e06c75; }
+  #find button { background: transparent; color: #aab2bf; border: 0; border-radius: 5px; width: 26px; height: 26px;
+                 font: 14px "Segoe UI Symbol", "Segoe UI", sans-serif; cursor: pointer; }
+  #find button:hover { background: #2f3440; color: #fff; }
+  #find button.on { background: #1f3d3a; color: #00c8aa; }
+  #count { min-width: 64px; text-align: center; color: #8b93a1; font-size: 12px; }
+
+  /* Infobulle des liens */
+  #tip { position: absolute; z-index: 11; display: none; pointer-events: none; background: #22262e; color: #d8dee9;
+         border: 1px solid #3a3f4b; border-radius: 5px; padding: 3px 8px; font: 12px "Segoe UI", sans-serif;
+         max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 </style>
 </head>
 <body>
 <div id="t"></div>
+<div id="find">
+  <input id="q" placeholder="Rechercher" spellcheck="false">
+  <span id="count"></span>
+  <button id="case" title="Respecter la casse">Aa</button>
+  <button id="prev" title="Précédent (Maj+Entrée)">&#x2191;</button>
+  <button id="next" title="Suivant (Entrée)">&#x2193;</button>
+  <button id="close" title="Fermer (Échap)">&#x2715;</button>
+</div>
+<div id="tip"></div>
 <script src="xterm.js"></script>
 <script src="addon-fit.js"></script>
+<script src="addon-search.js"></script>
+<script src="addon-web-links.js"></script>
 <script>
   const post = m => window.chrome.webview.postMessage(m);
   const term = new Terminal({
@@ -53,7 +84,71 @@
     const s = Math.max(8, Math.min(32, term.options.fontSize + (e.deltaY < 0 ? 1 : -1)));
     term.options.fontSize = s; doFit(); post({ t: 'font', size: s });
   }, { passive: false });
+  // ---------- Recherche (Ctrl+F) ----------
+  const search = new SearchAddon.SearchAddon();
+  term.loadAddon(search);
+  const findBox = document.getElementById('find'), q = document.getElementById('q'), count = document.getElementById('count');
+  const caseBtn = document.getElementById('case');
+  let caseSensitive = false;
+  const decorations = {
+    matchBackground: '#5c4a1a', matchBorder: '#e5c07b', matchOverviewRuler: '#e5c07b',
+    activeMatchBackground: '#00806c', activeMatchBorder: '#00c8aa', activeMatchColorOverviewRuler: '#00c8aa'
+  };
+  const opts = incremental => ({ caseSensitive, incremental, decorations });
+  search.onDidChangeResults(r => {
+    if (!q.value) { count.textContent = ''; q.classList.remove('none'); return; }
+    const none = !r || r.resultCount === 0;
+    q.classList.toggle('none', none);
+    count.textContent = none ? 'Aucun résultat'
+      : r.resultIndex >= 0 ? `${r.resultIndex + 1} sur ${r.resultCount}` : `${r.resultCount} résultat(s)`;
+  });
+  const findNext = (incremental = false) => { if (q.value) search.findNext(q.value, opts(incremental)); else search.clearDecorations(); };
+  const findPrev = () => { if (q.value) search.findPrevious(q.value, opts(false)); };
+  const openFind = () => {
+    const sel = term.getSelection();
+    if (sel && !sel.includes('\n')) q.value = sel;
+    findBox.classList.add('open');
+    q.focus(); q.select();
+    if (q.value) findNext(true);
+  };
+  const closeFind = () => {
+    findBox.classList.remove('open');
+    search.clearDecorations(); term.clearSelection();
+    count.textContent = ''; q.classList.remove('none');
+    term.focus();
+  };
+  q.addEventListener('input', () => findNext(true));
+  q.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? findPrev() : findNext(); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+    else if (e.key === 'f' && e.ctrlKey) { e.preventDefault(); q.select(); }
+  });
+  caseBtn.addEventListener('click', () => { caseSensitive = !caseSensitive; caseBtn.classList.toggle('on', caseSensitive); findNext(true); q.focus(); });
+  document.getElementById('next').addEventListener('click', () => { findNext(); q.focus(); });
+  document.getElementById('prev').addEventListener('click', () => { findPrev(); q.focus(); });
+  document.getElementById('close').addEventListener('click', closeFind);
+
+  // ---------- Liens cliquables (Ctrl+clic) ----------
+  const tip = document.getElementById('tip');
+  term.loadAddon(new WebLinksAddon.WebLinksAddon((ev, uri) => {
+    if (ev.ctrlKey) post({ t: 'open', url: uri });
+  }, {
+    hover: (ev, uri) => {
+      tip.textContent = 'Ctrl+clic pour ouvrir  ·  ' + uri;
+      tip.style.display = 'block';
+      const x = Math.min(ev.clientX + 12, window.innerWidth - tip.offsetWidth - 8);
+      tip.style.left = Math.max(4, x) + 'px';
+      tip.style.top = Math.max(4, ev.clientY - 30) + 'px';
+    },
+    leave: () => { tip.style.display = 'none'; }
+  }));
+
   term.attachCustomKeyEventHandler(e => {
+    // Ctrl+F : recherche (sauf dans vim, nano, htop… qui utilisent Ctrl+F) ; Ctrl+Maj+F : toujours la recherche
+    if (e.type === 'keydown' && e.ctrlKey && !e.altKey && e.code === 'KeyF'
+        && (e.shiftKey || term.buffer.active.type !== 'alternate')) {
+      openFind(); e.preventDefault(); return false;
+    }
     if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
       const s = term.getSelection(); if (s) post({ t: 'copy', d: s });
       e.preventDefault(); return false;
