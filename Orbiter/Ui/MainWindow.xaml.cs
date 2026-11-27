@@ -37,6 +37,11 @@ public partial class MainWindow : Window
         ThemeManager.ApplyTitleBar(this);
         ThemeManager.Changed += UpdateThemeButton;
         UpdateThemeButton();
+        Loaded += async (_, _) =>
+        {
+            await Task.Delay(1500);
+            await UpdateUi.CheckAsync(this, manual: false);
+        };
     }
 
     // ---------- Liste des sessions ----------
@@ -375,7 +380,7 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         var v = typeof(MainWindow).Assembly.GetName().Version;
-        ModernDialog.Show(this, $"Orbiter {v?.ToString(3)}", "Client SSH / SFTP pour Windows.", DialogKind.Info,
+        var choice = ModernDialog.Show(this, $"Orbiter {v?.ToString(3)}", "Client SSH / SFTP pour Windows.", DialogKind.Info,
             Dialogs.Details(
                 ("Terminal", "SSH xterm-256color en onglets", false),
                 ("Fichiers", "Explorateur SFTP, glisser-déposer, édition à distance", false),
@@ -383,13 +388,34 @@ public partial class MainWindow : Window
                 ("Sécurité", "Secrets chiffrés avec Windows DPAPI", false),
                 ("Données", AppPaths.Roaming, true),
                 ("Composants", "SSH.NET (MIT), xterm.js (MIT), Microsoft WebView2", false)),
+            new DialogButton("Rechercher les mises à jour", "update"),
             new DialogButton("Fermer", "ok", Primary: true, IsDefault: true));
+        if (choice == "update") _ = UpdateUi.CheckAsync(this, manual: true);
+    }
+
+    private bool _quitConfirmed;
+
+    /// <summary>Demande confirmation s'il reste des sessions connectées (avant une mise à jour).</summary>
+    public bool ConfirmQuit(string title)
+    {
+        var live = _tabs.Count(t => t.View.State == SessionState.Connected);
+        _quitConfirmed = live == 0 || Dialogs.Confirm(this, title,
+            $"Orbiter va redémarrer : {live} session(s) encore connectée(s) seront fermées.", "Continuer", "Annuler", DialogKind.Warning);
+        return _quitConfirmed;
+    }
+
+    /// <summary>Ferme Orbiter sans nouvelle question (la confirmation a déjà eu lieu).</summary>
+    public void QuitNow()
+    {
+        _quitConfirmed = true;
+        Close();
+        Application.Current.Shutdown();
     }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
         var live = _tabs.Count(t => t.View.State == SessionState.Connected);
-        if (live > 0 && !Dialogs.Confirm(this, "Quitter Orbiter ?", $"{live} session(s) encore connectée(s) seront fermées.",
+        if (live > 0 && !_quitConfirmed && !Dialogs.Confirm(this, "Quitter Orbiter ?", $"{live} session(s) encore connectée(s) seront fermées.",
                 "Quitter", "Annuler", DialogKind.Warning))
         {
             e.Cancel = true;

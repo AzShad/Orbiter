@@ -11,6 +11,8 @@ public class AppSettings
 {
     private static readonly string FilePath = Path.Combine(AppPaths.Roaming, "settings.json");
     public ThemeChoice Theme { get; set; } = ThemeChoice.System;
+    /// <summary>Version que l'utilisateur a choisi d'ignorer (« Ignorer cette version »).</summary>
+    public string? SkippedVersion { get; set; }
 
     public static AppSettings Load() => Json.Load<AppSettings>(FilePath);
     public void Save() { try { Json.Save(FilePath, this); } catch { } }

@@ -16,6 +16,7 @@ public static class Program
     public static void Main(string[] args)
     {
         _out = args[0];
+        UpdateUi.AutoCheck = false;
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         app.Resources.MergedDictionaries.Add(Dict("Light"));
         app.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/Orbiter;component/Theme/Controls.xaml") });
@@ -52,6 +53,10 @@ public static class Program
             await Modal(theme + "_saved", () => Dialogs.Confirm(main, "Session enregistrée",
                 "La session « Serveur web » a été ajoutée. Se connecter maintenant ?", "Se connecter", "Plus tard", DialogKind.Success));
             await Modal(theme + "_editor", () => SessionEditorWindow.Edit(main, null));
+            await Modal(theme + "_update", () => UpdateUi.Offer(main, new Orbiter.Core.UpdateInfo(new Version(1, 4, 0),
+                "•  Vérification des mises à jour au démarrage\n•  Mise à jour en un clic (installeur ou version portable)",
+                "https://github.com/", "https://github.com/x.exe", "Orbiter-Setup-1.4.0.exe", 1, null)));
+            await Modal(theme + "_update_progress", () => new UpdateProgressWindow("1.4.0") { Owner = main }.Run(Task.Delay(5000)));
             main.Close();
         }
     }

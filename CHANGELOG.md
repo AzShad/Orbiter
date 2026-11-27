@@ -2,6 +2,12 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.3.0] - 2026-11-27
+- Orbiter vérifie au démarrage si une nouvelle version est disponible et propose de l'installer
+- Mise à jour en un clic : installation automatique puis redémarrage (version installée comme version portable)
+- Bouton « Rechercher les mises à jour » dans la fenêtre À propos
+- Possibilité d'ignorer une version proposée
+
 ## [1.2.1] - 2026-11-27
 - Documentation complète de reprise du projet (CLAUDE.md) : architecture, installation d'un nouveau poste, tests, pièges connus
 - Correction du script de publication qui produisait un numéro de version à 4 chiffres

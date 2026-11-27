@@ -18,6 +18,8 @@ public partial class App : Application
     {
         DispatcherUnhandledException += OnUnhandled;
         ExtractWebAssets();
+        Updater.CleanupOld(e.Args);
+        Updater.CleanupDownloads();
         base.OnStartup(e);
         ThemeManager.Initialize();
         var main = new Ui.MainWindow();
