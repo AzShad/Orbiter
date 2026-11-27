@@ -7,9 +7,16 @@ namespace Orbiter.Core;
 
 public static class AppPaths
 {
-    public static string Roaming { get; } = MigrateFromNovaTerm(Path.Combine(
+    /// <summary>
+    /// Dossier de données forcé (tests) : si ORBITER_DATA_DIR est défini, sessions, réglages, empreintes et cache
+    /// y sont rangés au lieu de %APPDATA% / %LOCALAPPDATA%, pour ne jamais toucher aux vraies données.
+    /// </summary>
+    public static string? Override { get; } =
+        Environment.GetEnvironmentVariable("ORBITER_DATA_DIR") is { Length: > 0 } d ? Path.GetFullPath(d) : null;
+
+    public static string Roaming { get; } = Override != null ? Ensure(Override) : MigrateFromNovaTerm(Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Orbiter"));
-    public static string Local { get; } = Ensure(Path.Combine(
+    public static string Local { get; } = Ensure(Override != null ? Path.Combine(Override, "local") : Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Orbiter"));
     public static string WebRoot => Ensure(Path.Combine(Local, "web"));
     public static string WebViewData => Ensure(Path.Combine(Local, "WebView2"));
@@ -74,15 +81,21 @@ internal static class Json
                 return JsonSerializer.Deserialize<T>(File.ReadAllText(path), Options) ?? new T();
         }
         catch { /* fichier corrompu : on repart à vide, une sauvegarde est conservée */
-            try { File.Copy(path, path + ".bak", true); } catch { }
+            try { File.Copy(path, path + ".corrompu", true); } catch { }
         }
         return new T();
     }
 
-    public static void Save<T>(string path, T value)
+    /// <summary>Écriture atomique ; avec keepBackup, la version précédente est gardée dans « fichier.bak ».</summary>
+    public static void Save<T>(string path, T value, bool keepBackup = false)
     {
         var tmp = path + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(value, Options));
+        if (keepBackup && File.Exists(path))
+        {
+            try { File.Replace(tmp, path, path + ".bak"); return; }
+            catch (IOException) { /* volume sans prise en charge de Replace : écriture simple */ }
+        }
         File.Move(tmp, path, true);
     }
 }
@@ -93,7 +106,8 @@ public class SessionStore
     public List<SessionProfile> Sessions { get; private set; } = new();
 
     public static SessionStore Load() => new() { Sessions = Json.Load<List<SessionProfile>>(FilePath) };
-    public void Save() => Json.Save(FilePath, Sessions);
+    /// <summary>Enregistre les sessions ; la version précédente reste dans sessions.json.bak (filet de sécurité).</summary>
+    public void Save() => Json.Save(FilePath, Sessions, keepBackup: true);
 }
 
 public record KnownHostEntry(string Algorithm, string FingerprintSha256);

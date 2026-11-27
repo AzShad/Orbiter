@@ -16,6 +16,8 @@ public static class Program
     public static void Main(string[] args)
     {
         _out = args[0];
+        // données isolées : les captures ne lisent ni n'écrivent jamais les vraies sessions
+        Environment.SetEnvironmentVariable("ORBITER_DATA_DIR", Path.Combine(Path.GetTempPath(), "orbiter-uipreview-data"));
         UpdateUi.AutoCheck = false;
         var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         app.Resources.MergedDictionaries.Add(Dict("Light"));

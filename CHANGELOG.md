@@ -2,6 +2,11 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.8.1] - 2026-11-28
+- Filet de sécurité : la version précédente de vos sessions est désormais conservée dans sessions.json.bak à chaque enregistrement
+- Un fichier de sessions illisible est mis de côté (sessions.json.corrompu) au lieu d'être écrasé
+- Nouvelle variable ORBITER_DATA_DIR pour tester Orbiter avec un dossier de données séparé, sans toucher à ses vraies sessions
+
 ## [1.8.0] - 2026-11-28
 - Le panneau SFTP peut suivre le dossier du terminal : activez le bouton lien de sa barre d'outils, et chaque cd dans le terminal ouvre le même dossier dans l'explorateur
 - Si le serveur ne communique pas encore son dossier courant, Orbiter propose d'y installer un petit script (bash et zsh), sans rien changer à l'affichage du terminal

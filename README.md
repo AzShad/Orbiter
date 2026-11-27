@@ -28,7 +28,8 @@ Prérequis : Windows 10 1809+ / 11 x64, avec Microsoft Edge WebView2 Runtime (d�
 - Dossiers de sessions : glisser-déposer une session sur un dossier, clic sur un dossier pour le replier
 - Connexion rapide `utilisateur@hôte:port` (essaie aussi les clés `~/.ssh/id_*` non chiffrées)
 
-Données : `%APPDATA%\Orbiter` (sessions.json, known_hosts.json, settings.json).
+Données : `%APPDATA%\Orbiter` (sessions.json, known_hosts.json, settings.json). La version précédente des sessions est
+gardée dans `sessions.json.bak`. Pour tester sans toucher à ses données : variable d'environnement `ORBITER_DATA_DIR`.
 Les données de l'ancienne version NovaTerm sont reprises automatiquement au premier lancement.
 
 ## Versions
