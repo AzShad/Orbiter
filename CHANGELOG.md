@@ -2,6 +2,10 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.6.0] - 2026-11-28
+- Commandes enregistrées : bouton ▶ dans la barre du haut pour envoyer une commande au terminal actif, ou à tous les terminaux connectés en même temps
+- Nouvelle fenêtre Paramètres (roue dentée) pour créer, modifier, supprimer et ordonner ses commandes ; une commande peut être exécutée directement ou seulement collée pour être relue avant Entrée
+
 ## [1.5.0] - 2026-11-28
 - Recherche dans le terminal avec Ctrl+F : résultats surlignés, Entrée / Maj+Entrée pour passer de l'un à l'autre, option respecter la casse (Ctrl+F reste disponible dans vim, nano et htop ; Ctrl+Maj+F ouvre toujours la recherche)
 - Liens cliquables dans le terminal : Ctrl+clic ouvre l'adresse dans le navigateur

@@ -174,6 +174,19 @@ public sealed class TerminalView : Grid, IDisposable
         FocusTerminal();
     }
 
+    /// <summary>
+    /// Envoie une commande enregistrée : exécutée (Entrée ajoutée) ou seulement collée
+    /// (collage « bracketed » : le shell ne l'exécute pas avant Entrée, même sur plusieurs lignes).
+    /// </summary>
+    public void SendCommand(string command, bool run)
+    {
+        if (State != SessionState.Connected) return;
+        var text = command.Replace("\r\n", "\n").TrimEnd('\n');
+        if (run) OnInput(text.Replace("\n", "\r") + "\r");
+        else Post(new { t = "paste", d = text });
+        FocusTerminal();
+    }
+
     public void FocusTerminal()
     {
         _web.Focus();

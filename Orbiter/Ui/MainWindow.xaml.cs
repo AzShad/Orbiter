@@ -393,6 +393,72 @@ public partial class MainWindow : Window
         if (choice == "update") _ = UpdateUi.CheckAsync(this, manual: true);
     }
 
+    // ---------- Commandes enregistrées ----------
+
+    private bool _sendToAll;
+
+    private void Settings_Click(object sender, RoutedEventArgs e) => SettingsWindow.Open(this);
+
+    private void Commands_Click(object sender, RoutedEventArgs e)
+    {
+        // menu aligné sur le bord droit du bouton (il ne déborde pas de la fenêtre)
+        var menu = new ContextMenu
+        {
+            PlacementTarget = CommandsBtn,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Custom,
+            CustomPopupPlacementCallback = (popup, target, _) => new[]
+            {
+                new System.Windows.Controls.Primitives.CustomPopupPlacement(
+                    new Point(target.Width - popup.Width, target.Height + 2), System.Windows.Controls.Primitives.PopupPrimaryAxis.Horizontal),
+            },
+        };
+        var targets = CommandTargets();
+        var commands = ThemeManager.Settings.CommandList;
+
+        var head = new MenuItem
+        {
+            Header = targets.Count == 0 ? "Aucun terminal SSH connecté"
+                : _sendToAll ? $"Envoyer à {targets.Count} terminal(aux) connecté(s)" : $"Envoyer à « {targets[0].Profile.Name} »",
+            IsEnabled = false,
+        };
+        menu.Items.Add(head);
+        menu.Items.Add(new Separator());
+        foreach (var c in commands)
+        {
+            var mi = new MenuItem
+            {
+                Header = c.Name, InputGestureText = c.Preview, IsEnabled = targets.Count > 0,
+                ToolTip = c.Command + (c.RunImmediately ? "" : "\n(collée sans être exécutée)"),
+            };
+            var cmd = c;
+            mi.Click += (_, _) => { foreach (var t in CommandTargets()) t.Terminal!.SendCommand(cmd.Command, cmd.RunImmediately); };
+            menu.Items.Add(mi);
+        }
+        if (commands.Count == 0) menu.Items.Add(new MenuItem { Header = "Aucune commande enregistrée", IsEnabled = false });
+        menu.Items.Add(new Separator());
+        var all = new MenuItem { Header = "Envoyer à tous les terminaux connectés", IsCheckable = true, IsChecked = _sendToAll, StaysOpenOnClick = true };
+        all.Click += (_, _) =>
+        {
+            _sendToAll = all.IsChecked;
+            var n = CommandTargets().Count;
+            head.Header = n == 0 ? "Aucun terminal SSH connecté"
+                : _sendToAll ? $"Envoyer à {n} terminal(aux) connecté(s)" : $"Envoyer à « {CommandTargets()[0].Profile.Name} »";
+        };
+        menu.Items.Add(all);
+        var manage = new MenuItem { Header = "Gérer les commandes…" };
+        manage.Click += (_, _) => SettingsWindow.Open(this);
+        menu.Items.Add(manage);
+        menu.IsOpen = true;
+    }
+
+    /// <summary>Terminaux qui recevront la commande : l'onglet actif, ou tous les terminaux connectés.</summary>
+    private List<SessionView> CommandTargets()
+    {
+        static bool Live(SessionView v) => v.Terminal is { State: SessionState.Connected };
+        if (_sendToAll) return _tabs.Select(t => t.View).Where(Live).ToList();
+        return _active?.View is { } a && Live(a) ? new List<SessionView> { a } : new List<SessionView>();
+    }
+
     private void Backup_Click(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu { PlacementTarget = BackupBtn, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };

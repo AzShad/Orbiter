@@ -25,6 +25,35 @@ public class TunnelDef
     public override string ToString() => Display;
 }
 
+/// <summary>Commande enregistrée, envoyée au terminal depuis le menu « Commandes ».</summary>
+public class SavedCommand
+{
+    public string Name { get; set; } = "";
+    public string Command { get; set; } = "";
+    /// <summary>Appuyer sur Entrée après l'envoi (sinon la commande est seulement collée).</summary>
+    public bool RunImmediately { get; set; } = true;
+
+    [JsonIgnore]
+    public string Preview
+    {
+        get
+        {
+            var one = Command.Replace("\r", "").Replace("\n", " ⏎ ");
+            return one.Length > 34 ? one[..32] + "…" : one;
+        }
+    }
+
+    public SavedCommand Clone() => (SavedCommand)MemberwiseClone();
+
+    public static List<SavedCommand> Examples() => new()
+    {
+        new() { Name = "Espace disque", Command = "df -h" },
+        new() { Name = "Conteneurs Docker", Command = "docker ps" },
+        new() { Name = "Mettre à jour Docker Compose", Command = "docker compose pull && docker compose up -d" },
+        new() { Name = "Mise à jour du système", Command = "apt update && apt upgrade", RunImmediately = false },
+    };
+}
+
 public class SessionProfile
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("N");

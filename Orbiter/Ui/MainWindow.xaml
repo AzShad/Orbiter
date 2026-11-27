@@ -33,6 +33,9 @@
                 <Button DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="About_Click" ToolTip="À propos">
                     <TextBlock Text="&#xE946;" FontFamily="{StaticResource Icons}" FontSize="15"/>
                 </Button>
+                <Button DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="Settings_Click" ToolTip="Paramètres">
+                    <TextBlock Text="&#xE713;" FontFamily="{StaticResource Icons}" FontSize="15"/>
+                </Button>
                 <Button x:Name="BackupBtn" DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="Backup_Click"
                         ToolTip="Sauvegarder ou restaurer les sessions">
                     <TextBlock Text="&#xE74E;" FontFamily="{StaticResource Icons}" FontSize="15"/>
@@ -46,6 +49,10 @@
                 </Button>
                 <Button x:Name="SftpToggleBtn" DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="ToggleSftp_Click" IsEnabled="False">
                     <TextBlock><Run Text="&#xE8B7;" FontFamily="{StaticResource Icons}"/><Run Text="  Panneau SFTP"/></TextBlock>
+                </Button>
+                <Button x:Name="CommandsBtn" DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="Commands_Click"
+                        ToolTip="Commandes enregistrées">
+                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource Icons}" FontSize="15"/>
                 </Button>
             </DockPanel>
         </Border>
