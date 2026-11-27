@@ -56,6 +56,7 @@ public static class Program
             await Modal(theme + "_update", () => UpdateUi.Offer(main, new Orbiter.Core.UpdateInfo(new Version(1, 4, 0),
                 "•  Vérification des mises à jour au démarrage\n•  Mise à jour en un clic (installeur ou version portable)",
                 "https://github.com/", "https://github.com/x.exe", "Orbiter-Setup-1.4.0.exe", 1, null)));
+            await Modal(theme + "_backup_password", () => BackupPasswordWindow.Ask(main));
             await Modal(theme + "_update_progress", () => new UpdateProgressWindow("1.4.0") { Owner = main }.Run(Task.Delay(5000)));
             main.Close();
         }

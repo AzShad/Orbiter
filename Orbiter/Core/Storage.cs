@@ -126,6 +126,26 @@ public static class KnownHosts
         lock (Gate) SessionTrusted.Add(Key(host, port) + "|" + fp);
     }
 
+    /// <summary>Copie de toutes les empreintes connues (pour la sauvegarde).</summary>
+    public static Dictionary<string, KnownHostEntry> All()
+    {
+        lock (Gate) return new Dictionary<string, KnownHostEntry>(Entries);
+    }
+
+    /// <summary>Ajoute les empreintes absentes (celles déjà connues ne changent pas) ; renvoie le nombre ajouté.</summary>
+    public static int MergeMissing(Dictionary<string, KnownHostEntry>? entries)
+    {
+        if (entries == null) return 0;
+        lock (Gate)
+        {
+            var n = 0;
+            foreach (var (k, v) in entries)
+                if (Entries.TryAdd(k, v)) n++;
+            if (n > 0) Json.Save(FilePath, Entries);
+            return n;
+        }
+    }
+
     public static void Save(string host, int port, string alg, string fp)
     {
         lock (Gate)

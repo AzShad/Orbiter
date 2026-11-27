@@ -33,6 +33,10 @@
                 <Button DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="About_Click" ToolTip="À propos">
                     <TextBlock Text="&#xE946;" FontFamily="{StaticResource Icons}" FontSize="15"/>
                 </Button>
+                <Button x:Name="BackupBtn" DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="Backup_Click"
+                        ToolTip="Sauvegarder ou restaurer les sessions">
+                    <TextBlock Text="&#xE74E;" FontFamily="{StaticResource Icons}" FontSize="15"/>
+                </Button>
                 <Button x:Name="ThemeBtn" DockPanel.Dock="Right" Style="{StaticResource FlatButton}" Click="Theme_Click"
                         ToolTip="Basculer thème clair / sombre">
                     <TextBlock x:Name="ThemeGlyph" Text="&#xE708;" FontFamily="{StaticResource Icons}" FontSize="15"/>

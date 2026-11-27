@@ -2,6 +2,10 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.4.0] - 2026-11-28
+- Sauvegarde chiffrée des sessions (bouton disquette) : sessions, mots de passe mémorisés, clés privées et empreintes serveur dans un seul fichier .orbiter protégé par un mot de passe
+- Restauration sur n'importe quel PC, même après une réinstallation de Windows : les sessions existantes sont conservées
+
 ## [1.3.0] - 2026-11-27
 - Orbiter vérifie au démarrage si une nouvelle version est disponible et propose de l'installer
 - Mise à jour en un clic : installation automatique puis redémarrage (version installée comme version portable)

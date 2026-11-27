@@ -393,6 +393,23 @@ public partial class MainWindow : Window
         if (choice == "update") _ = UpdateUi.CheckAsync(this, manual: true);
     }
 
+    private void Backup_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu { PlacementTarget = BackupBtn, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var export = new MenuItem { Header = "Exporter une sauvegarde chiffrée…" };
+        export.Click += (_, _) => BackupUi.Export(this, _store.Sessions);
+        var import = new MenuItem { Header = "Restaurer une sauvegarde…" };
+        import.Click += (_, _) =>
+        {
+            if (!BackupUi.Import(this, _store.Sessions)) return;
+            SaveStore();
+            RefreshSessionList();
+        };
+        menu.Items.Add(export);
+        menu.Items.Add(import);
+        menu.IsOpen = true;
+    }
+
     private bool _quitConfirmed;
 
     /// <summary>Demande confirmation s'il reste des sessions connectées (avant une mise à jour).</summary>
