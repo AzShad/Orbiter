@@ -31,11 +31,12 @@ if (git status --porcelain) {
 $old = (Get-Content VERSION -Raw).Trim()
 $p = $old.Split('.') | ForEach-Object { [int]$_ }
 switch ($Bump) {
-    'major' { $p = @($p[0] + 1, 0, 0) }
-    'minor' { $p = @($p[0], $p[1] + 1, 0) }
-    'patch' { $p = @($p[0], $p[1], $p[2] + 1) }
+    'major' { $p = @(($p[0] + 1), 0, 0) }
+    'minor' { $p = @($p[0], ($p[1] + 1), 0) }
+    'patch' { $p = @($p[0], $p[1], ($p[2] + 1)) }
 }
 $new = $p -join '.'
+if ($new -notmatch '^\d+\.\d+\.\d+$') { throw "Version calculée invalide : $new" }
 if (git tag --list "v$new") { throw "Le tag v$new existe déjà." }
 
 $utf8 = New-Object System.Text.UTF8Encoding $false
