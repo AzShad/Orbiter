@@ -40,6 +40,22 @@ public static class Program
             var main = new MainWindow { Width = 1100, Height = 700 };
             app.MainWindow = main;
             main.Show();
+            // liste de démonstration (affichage seulement, rien n'est enregistré)
+            if (main.FindName("SessionList") is System.Windows.Controls.ListBox list)
+            {
+                Orbiter.Core.SessionProfile S(string name, string host, string? folder, bool sftp = false) =>
+                    new() { Name = name, Host = host, Username = "root", Folder = folder, Kind = sftp ? Orbiter.Core.SessionKind.Sftp : Orbiter.Core.SessionKind.Ssh };
+                list.ItemsSource = new object[]
+                {
+                    S("Routeur", "192.168.1.1", null),
+                    new FolderRow { Name = "Maison", Count = 2 },
+                    S("NAS", "nas.local", "Maison"),
+                    S("Vaultwarden", "10.0.3.2", "Maison"),
+                    new FolderRow { Name = "Production", Count = 3, Collapsed = true },
+                    new FolderRow { Name = "Tests", Count = 1 },
+                    S("Fichiers test", "test.exemple.fr", "Tests", sftp: true),
+                };
+            }
             await Task.Delay(900);
             Render(main, $"{theme}_main.png");
 

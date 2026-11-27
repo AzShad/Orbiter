@@ -1,6 +1,8 @@
 <Window x:Class="Orbiter.Ui.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:Orbiter.Core"
+        xmlns:ui="clr-namespace:Orbiter.Ui"
         Title="Orbiter" Height="780" Width="1280" MinWidth="800" MinHeight="480"
         Icon="pack://application:,,,/Orbiter;component/Assets/orbiter.ico" WindowStartupLocation="CenterScreen" Background="{DynamicResource WindowBg}"
         Foreground="{DynamicResource Text}" FontFamily="Segoe UI" FontSize="13">
@@ -79,7 +81,10 @@
                                VerticalAlignment="Center" Margin="8,0,0,0" FontFamily="Segoe UI, Segoe MDL2 Assets"/>
                 </Grid>
                 <ListBox x:Name="SessionList" Grid.Row="2" Background="Transparent" BorderThickness="0"
-                         MouseDoubleClick="SessionList_DoubleClick" KeyDown="SessionList_KeyDown"
+                         MouseDoubleClick="SessionList_DoubleClick" KeyDown="SessionList_KeyDown" AllowDrop="True"
+                         PreviewMouseLeftButtonDown="SessionList_PreviewMouseDown" PreviewMouseMove="SessionList_PreviewMouseMove"
+                         PreviewMouseLeftButtonUp="SessionList_PreviewMouseUp" DragOver="SessionList_DragOver" Drop="SessionList_Drop"
+                         ContextMenuOpening="SessionList_ContextMenuOpening"
                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
@@ -87,9 +92,10 @@
                             <Setter Property="Margin" Value="4,1"/>
                         </Style>
                     </ListBox.ItemContainerStyle>
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
+                    <ListBox.Resources>
+                        <!-- Session (décalée quand elle est dans un dossier) -->
+                        <DataTemplate DataType="{x:Type core:SessionProfile}">
+                            <Grid x:Name="row">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
@@ -103,23 +109,42 @@
                                     </TextBlock>
                                 </StackPanel>
                             </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding HasFolder}" Value="True">
+                                    <Setter TargetName="row" Property="Margin" Value="16,0,0,0"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
                         </DataTemplate>
-                    </ListBox.ItemTemplate>
+                        <!-- En-tête de dossier (clic = replier / déplier) -->
+                        <DataTemplate DataType="{x:Type ui:FolderRow}">
+                            <Grid Background="Transparent">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Chevron}" FontFamily="{StaticResource Icons}" FontSize="9" Width="14"
+                                           Foreground="{DynamicResource Muted}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="&#xE8B7;" FontFamily="{StaticResource Icons}" FontSize="14"
+                                           Foreground="{DynamicResource Accent}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Count}" FontSize="11" Foreground="{DynamicResource Muted}"
+                                           VerticalAlignment="Center" Margin="8,0,2,0"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.Resources>
                     <ListBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Header="Ouvrir" Click="OpenSession_Click" FontWeight="SemiBold"/>
-                            <MenuItem Header="Ouvrir en SSH (terminal)" Click="OpenSsh_Click"/>
-                            <MenuItem Header="Ouvrir en SFTP (fichiers)" Click="OpenSftp_Click"/>
-                            <Separator/>
-                            <MenuItem Header="Modifier…" Click="EditSession_Click"/>
-                            <MenuItem Header="Dupliquer" Click="DuplicateSession_Click"/>
-                            <MenuItem Header="Supprimer" Click="DeleteSession_Click"/>
-                        </ContextMenu>
+                        <ContextMenu/>
                     </ListBox.ContextMenu>
                 </ListBox>
                 <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="6">
                     <Button Style="{StaticResource FlatButton}" Click="NewSession_Click" ToolTip="Nouvelle session">
                         <TextBlock Text="&#xE710;" FontFamily="{StaticResource Icons}"/>
+                    </Button>
+                    <Button Style="{StaticResource FlatButton}" Click="NewFolder_Click" ToolTip="Nouveau dossier">
+                        <TextBlock Text="&#xE8F4;" FontFamily="{StaticResource Icons}"/>
                     </Button>
                     <Button Style="{StaticResource FlatButton}" Click="EditSession_Click" ToolTip="Modifier">
                         <TextBlock Text="&#xE70F;" FontFamily="{StaticResource Icons}"/>

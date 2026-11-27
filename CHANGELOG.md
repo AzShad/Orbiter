@@ -2,6 +2,11 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.7.0] - 2026-11-28
+- Dossiers de sessions : rangez vos serveurs par groupe (bouton « Nouveau dossier » sous la liste, ou champ Dossier dans la fenêtre de session)
+- Glisser-déposer une session sur un dossier pour l'y ranger ; clic sur un dossier pour le replier ou le déplier (mémorisé)
+- Clic droit sur un dossier : nouvelle session dans ce dossier, renommer, supprimer (les sessions sont conservées), tout replier / déplier
+
 ## [1.6.0] - 2026-11-28
 - Commandes enregistrées : bouton ▶ dans la barre du haut pour envoyer une commande au terminal actif, ou à tous les terminaux connectés en même temps
 - Nouvelle fenêtre Paramètres (roue dentée) pour créer, modifier, supprimer et ordonner ses commandes ; une commande peut être exécutée directement ou seulement collée pour être relue avant Entrée

@@ -48,6 +48,7 @@
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="Nom" Style="{StaticResource Label}"/>
                     <TextBox x:Name="NameBox" Grid.Column="1" Grid.ColumnSpan="3" Height="28"/>
@@ -65,6 +66,19 @@
 
                     <TextBlock Grid.Row="3" Text="Utilisateur" Style="{StaticResource Label}"/>
                     <TextBox x:Name="UserBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Height="28"/>
+
+                    <TextBlock Grid.Row="4" Text="Dossier" Style="{StaticResource Label}"/>
+                    <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="FolderBox" Height="28" ToolTip="Laisser vide pour une session hors dossier"/>
+                        <Button x:Name="FolderPick" Grid.Column="1" Style="{StaticResource SecondaryButton}" Margin="6,0,0,0" Height="28"
+                                Padding="8,0" Click="FolderPick_Click" ToolTip="Choisir un dossier existant">
+                            <TextBlock Text="&#xE70D;" FontFamily="{StaticResource Icons}" FontSize="10"/>
+                        </Button>
+                    </Grid>
                 </Grid>
             </Border>
 

@@ -11,10 +11,15 @@ public partial class SessionEditorWindow : Window
     private readonly SessionProfile _profile;
     private readonly ObservableCollection<TunnelDef> _tunnels;
 
-    private SessionEditorWindow(SessionProfile profile, bool isNew)
+    private readonly List<string> _folders;
+
+    private SessionEditorWindow(SessionProfile profile, bool isNew, IEnumerable<string>? folders)
     {
         InitializeComponent();
         _profile = profile;
+        _folders = folders?.ToList() ?? new();
+        FolderBox.Text = profile.Folder ?? "";
+        FolderPick.IsEnabled = _folders.Count > 0;
         DialogChrome.Apply(this, isNew ? "Nouvelle session" : $"Modifier « {profile.Name} »");
 
         NameBox.Text = profile.Name;
@@ -46,15 +51,33 @@ public partial class SessionEditorWindow : Window
     }
 
     /// <summary>Ouvre l'éditeur. Renvoie le profil modifié, ou null si annulé.</summary>
-    public static SessionProfile? Edit(Window owner, SessionProfile? existing)
+    /// <param name="folder">Dossier proposé pour une nouvelle session.</param>
+    /// <param name="folders">Dossiers existants, proposés par le bouton à côté du champ.</param>
+    public static SessionProfile? Edit(Window owner, SessionProfile? existing, string? folder = null, IEnumerable<string>? folders = null)
     {
         var isNew = existing == null;
         var draft = existing?.Clone() ?? new SessionProfile
         {
             Username = Environment.UserName.ToLowerInvariant(),
+            Folder = folder,
         };
-        var w = new SessionEditorWindow(draft, isNew) { Owner = owner };
+        var w = new SessionEditorWindow(draft, isNew, folders) { Owner = owner };
         return w.ShowDialog() == true ? w._profile : null;
+    }
+
+    private void FolderPick_Click(object sender, RoutedEventArgs e)
+    {
+        var menu = new ContextMenu { PlacementTarget = FolderPick, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var none = new MenuItem { Header = "Hors dossier", IsCheckable = true, IsChecked = FolderBox.Text.Trim().Length == 0 };
+        none.Click += (_, _) => FolderBox.Text = "";
+        menu.Items.Add(none);
+        foreach (var f in _folders)
+        {
+            var mi = new MenuItem { Header = f, IsCheckable = true, IsChecked = string.Equals(f, FolderBox.Text.Trim(), StringComparison.CurrentCultureIgnoreCase) };
+            mi.Click += (_, _) => FolderBox.Text = f;
+            menu.Items.Add(mi);
+        }
+        menu.IsOpen = true;
     }
 
     private void Kind_Changed(object sender, RoutedEventArgs e) => UpdateEnabled();
@@ -152,6 +175,10 @@ public partial class SessionEditorWindow : Window
         p.Name = string.IsNullOrWhiteSpace(NameBox.Text) ? $"{user}@{host}" : NameBox.Text.Trim();
         p.Host = host;
         p.Port = port;
+        var folder = FolderBox.Text.Trim();
+        // même casse qu'un dossier existant, pour ne pas créer « Prod » et « prod »
+        p.Folder = folder.Length == 0 ? null
+            : _folders.FirstOrDefault(f => string.Equals(f, folder, StringComparison.CurrentCultureIgnoreCase)) ?? (folder.Length > 60 ? folder[..60] : folder);
         p.Username = user;
         p.Kind = KindSftp.IsChecked == true ? SessionKind.Sftp : SessionKind.Ssh;
         p.Auth = useKey ? AuthKind.PrivateKey : AuthKind.Password;

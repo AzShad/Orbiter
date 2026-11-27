@@ -17,6 +17,10 @@ public class AppSettings
     /// <summary>Commandes enregistrées ; null = jamais configurées (exemples proposés).</summary>
     public List<SavedCommand>? Commands { get; set; }
 
+    /// <summary>Dossiers de sessions créés (y compris vides) et dossiers repliés dans la liste.</summary>
+    public List<string> SessionFolders { get; set; } = new();
+    public List<string> CollapsedFolders { get; set; } = new();
+
     [JsonIgnore]
     public List<SavedCommand> CommandList => Commands ??= SavedCommand.Examples();
 

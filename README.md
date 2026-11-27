@@ -24,6 +24,7 @@ Prérequis : Windows 10 1809+ / 11 x64, avec Microsoft Edge WebView2 Runtime (d�
 - Mots de passe et passphrases mémorisés chiffrés avec Windows DPAPI (liés à votre compte Windows)
 - Vérification des empreintes serveur (alerte si l'empreinte change)
 - Thème clair / sombre (bouton lune/soleil, suit Windows par défaut), boîtes de dialogue modernes
+- Dossiers de sessions : glisser-déposer une session sur un dossier, clic sur un dossier pour le replier
 - Connexion rapide `utilisateur@hôte:port` (essaie aussi les clés `~/.ssh/id_*` non chiffrées)
 
 Données : `%APPDATA%\Orbiter` (sessions.json, known_hosts.json, settings.json).

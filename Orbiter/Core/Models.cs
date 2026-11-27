@@ -70,6 +70,9 @@ public class SessionProfile
     /// <summary>Passphrase de la clé chiffrée DPAPI (base64).</summary>
     public string? ProtectedPassphrase { get; set; }
 
+    /// <summary>Dossier de la session dans la liste (null = hors dossier).</summary>
+    public string? Folder { get; set; }
+
     public bool AutoSftpPanel { get; set; } = true;
     public string? InitialRemoteDir { get; set; }
     public List<TunnelDef> Tunnels { get; set; } = new();
@@ -83,7 +86,10 @@ public class SessionProfile
 
     [JsonIgnore] public string Endpoint => $"{Username}@{Host}" + (Port != 22 ? $":{Port}" : "");
     [JsonIgnore] public string KindGlyph => Kind == SessionKind.Ssh ? "" : "";
+    [JsonIgnore] public bool HasFolder => !string.IsNullOrWhiteSpace(Folder);
     [JsonIgnore] public string KindLabel => Kind == SessionKind.Ssh ? "SSH" : "SFTP";
+
+    public override string ToString() => $"{Name} ({KindLabel} {Endpoint})";
 
     public SessionProfile Clone()
     {

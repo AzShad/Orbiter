@@ -46,20 +46,6 @@ public partial class MainWindow : Window
 
     // ---------- Liste des sessions ----------
 
-    private void RefreshSessionList(SessionProfile? select = null)
-    {
-        var filter = SearchBox.Text.Trim();
-        var items = _store.Sessions
-            .Where(s => filter.Length == 0
-                        || s.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                        || s.Host.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                        || s.Username.Contains(filter, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        SessionList.ItemsSource = items;
-        if (select != null) SessionList.SelectedItem = items.FirstOrDefault(i => i.Id == select.Id);
-    }
-
     private SessionProfile? SelectedProfile => SessionList.SelectedItem as SessionProfile;
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -68,9 +54,11 @@ public partial class MainWindow : Window
         RefreshSessionList();
     }
 
-    private void NewSession_Click(object sender, RoutedEventArgs e)
+    private void NewSession_Click(object sender, RoutedEventArgs e) => NewSessionIn(CurrentFolder);
+
+    private void NewSessionIn(string? folder)
     {
-        var p = SessionEditorWindow.Edit(this, null);
+        var p = SessionEditorWindow.Edit(this, null, folder, AllFolders());
         if (p == null) return;
         _store.Sessions.Add(p);
         SaveStore();
@@ -84,7 +72,7 @@ public partial class MainWindow : Window
     {
         var current = SelectedProfile;
         if (current == null) return;
-        var edited = SessionEditorWindow.Edit(this, current);
+        var edited = SessionEditorWindow.Edit(this, current, null, AllFolders());
         if (edited == null) return;
         var idx = _store.Sessions.FindIndex(s => s.Id == current.Id);
         if (idx >= 0) _store.Sessions[idx] = edited;
@@ -131,14 +119,19 @@ public partial class MainWindow : Window
 
     private void SessionList_KeyDown(object sender, KeyEventArgs e)
     {
+        if (SelectedFolder is { } f)
+        {
+            if (e.Key is Key.Enter or Key.Space) { ToggleFolder(f.Name); e.Handled = true; }
+            else if (e.Key == Key.Left && !f.Collapsed || e.Key == Key.Right && f.Collapsed) { ToggleFolder(f.Name); e.Handled = true; }
+            else if (e.Key == Key.Delete) { DeleteFolder(f.Name); e.Handled = true; }
+            else if (e.Key == Key.F2) { RenameFolder(f.Name); e.Handled = true; }
+            return;
+        }
         if (e.Key == Key.Enter && SelectedProfile is { } p) { OpenSession(p, p.Kind); e.Handled = true; }
         else if (e.Key == Key.Delete) { DeleteSession_Click(sender, e); e.Handled = true; }
         else if (e.Key == Key.F2) { EditSession_Click(sender, e); e.Handled = true; }
     }
 
-    private void OpenSession_Click(object sender, RoutedEventArgs e) { if (SelectedProfile is { } p) OpenSession(p, p.Kind); }
-    private void OpenSsh_Click(object sender, RoutedEventArgs e) { if (SelectedProfile is { } p) OpenSession(p, SessionKind.Ssh); }
-    private void OpenSftp_Click(object sender, RoutedEventArgs e) { if (SelectedProfile is { } p) OpenSession(p, SessionKind.Sftp); }
 
     // ---------- Connexion rapide ----------
 
@@ -293,7 +286,7 @@ public partial class MainWindow : Window
         var draft = p.Clone();
         draft.Id = Guid.NewGuid().ToString("N");
         draft.IsTransient = false;
-        var saved = SessionEditorWindow.Edit(this, draft);
+        var saved = SessionEditorWindow.Edit(this, draft, null, AllFolders());
         if (saved == null) return;
         _store.Sessions.Add(saved);
         SaveStore();
