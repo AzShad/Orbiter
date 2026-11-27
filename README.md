@@ -40,7 +40,7 @@ Le script met à jour `VERSION` et `CHANGELOG.md`, crée le commit et le tag `vX
 GitHub Actions compile alors l'installeur et publie la Release automatiquement.
 
 ## Compiler en local
-Prérequis : SDK .NET 8, Inno Setup 6.
+Prérequis : SDK .NET 10, Inno Setup 6.
 
 ```powershell
 .\build.ps1

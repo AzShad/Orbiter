@@ -2,6 +2,10 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.4.1] - 2026-11-28
+- Orbiter fonctionne désormais avec .NET 10, qui reçoit les correctifs de sécurité jusqu'en 2028 (.NET 8 n'est plus maintenu)
+- Fichiers légèrement plus petits
+
 ## [1.4.0] - 2026-11-28
 - Sauvegarde chiffrée des sessions (bouton disquette) : sessions, mots de passe mémorisés, clés privées et empreintes serveur dans un seul fichier .orbiter protégé par un mot de passe
 - Restauration sur n'importe quel PC, même après une réinstallation de Windows : les sessions existantes sont conservées
