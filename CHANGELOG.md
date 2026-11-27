@@ -2,6 +2,9 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.2.0.1] - 2026-11-27
+- Documentation complète de reprise du projet (CLAUDE.md) : architecture, installation d'un nouveau poste, tests, pièges connus
+
 ## [1.2.0] - 2026-11-27
 - L'application s'appelle désormais **Orbiter** (anciennement NovaTerm)
 - Reprise automatique des sessions, empreintes et réglages de NovaTerm au premier lancement
