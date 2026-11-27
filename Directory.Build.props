@@ -1,0 +1,11 @@
+<Project>
+  <!-- Version unique de l'application : lue dans le fichier VERSION à la racine du dépôt -->
+  <PropertyGroup>
+    <OrbiterVersion>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)VERSION').Trim())</OrbiterVersion>
+    <Version>$(OrbiterVersion)</Version>
+    <AssemblyVersion>$(OrbiterVersion).0</AssemblyVersion>
+    <FileVersion>$(OrbiterVersion).0</FileVersion>
+    <InformationalVersion>$(OrbiterVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

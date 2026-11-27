@@ -1,0 +1,161 @@
+<Window x:Class="Orbiter.Ui.SessionEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Session" Width="580" SizeToContent="Height">
+    <Window.Resources>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource Muted}"/>
+        </Style>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,10"/>
+        </Style>
+        <Style x:Key="CardTitle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="2,12,0,5"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <!-- Pied de page -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource DialogFooter}" CornerRadius="0,0,10,10" Padding="20,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Annuler" Style="{StaticResource SecondaryButton}" IsCancel="True" MinWidth="90"/>
+                <Button Content="Enregistrer" Style="{StaticResource PrimaryButton}" IsDefault="True" MinWidth="110" Margin="8,0,0,0" Click="Save_Click"/>
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer x:Name="BodyScroll" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20,0,20,16">
+            <!-- Connexion -->
+            <TextBlock Text="CONNEXION" Style="{StaticResource CardTitle}" Margin="2,6,0,6"/>
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="70"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                        <RowDefinition Height="34"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Nom" Style="{StaticResource Label}"/>
+                    <TextBox x:Name="NameBox" Grid.Column="1" Grid.ColumnSpan="3" Height="28"/>
+
+                    <TextBlock Grid.Row="1" Text="Type" Style="{StaticResource Label}"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Orientation="Horizontal" VerticalAlignment="Center">
+                        <RadioButton x:Name="KindSsh" Content="SSH (terminal)" IsChecked="True" Margin="0,0,22,0" Checked="Kind_Changed"/>
+                        <RadioButton x:Name="KindSftp" Content="SFTP (fichiers seulement)" Checked="Kind_Changed"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="2" Text="Hôte" Style="{StaticResource Label}"/>
+                    <TextBox x:Name="HostBox" Grid.Row="2" Grid.Column="1" Height="28" ToolTip="Nom d'hôte ou adresse IP"/>
+                    <TextBlock Grid.Row="2" Grid.Column="2" Text="Port" Style="{StaticResource Label}" Margin="12,0,8,0"/>
+                    <TextBox x:Name="PortBox" Grid.Row="2" Grid.Column="3" Height="28" Text="22"/>
+
+                    <TextBlock Grid.Row="3" Text="Utilisateur" Style="{StaticResource Label}"/>
+                    <TextBox x:Name="UserBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Height="28"/>
+                </Grid>
+            </Border>
+
+            <!-- Authentification -->
+            <TextBlock Text="AUTHENTIFICATION" Style="{StaticResource CardTitle}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <RadioButton x:Name="AuthPassword" Content="Mot de passe" IsChecked="True" Checked="Auth_Changed" Margin="0,2,0,8"/>
+                    <Grid x:Name="PasswordPanel" Margin="25,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <PasswordBox x:Name="PasswordBox" Height="28" ToolTip="Laisser vide pour le demander à chaque connexion"/>
+                        <CheckBox x:Name="RememberPassword" Grid.Column="1" Content="Mémoriser (chiffré)" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+                    <RadioButton x:Name="AuthKey" Content="Clé privée (OpenSSH, PEM, PuTTY .ppk)" Checked="Auth_Changed" Margin="0,0,0,8"/>
+                    <Grid x:Name="KeyPanel" Margin="25,0,0,0" IsEnabled="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="34"/>
+                            <RowDefinition Height="34"/>
+                        </Grid.RowDefinitions>
+                        <TextBox x:Name="KeyPathBox" Height="28" ToolTip="Chemin du fichier de clé privée"/>
+                        <Button Grid.Column="1" Content="Parcourir…" Style="{StaticResource SecondaryButton}" Padding="12,5" Margin="8,0,0,0" Click="BrowseKey_Click"/>
+                        <PasswordBox x:Name="PassphraseBox" Grid.Row="1" Height="28" ToolTip="Passphrase de la clé (si elle est protégée)"/>
+                        <CheckBox x:Name="RememberPassphrase" Grid.Row="1" Grid.Column="1" Content="Mémoriser" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Options -->
+            <TextBlock Text="OPTIONS" Style="{StaticResource CardTitle}"/>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <CheckBox x:Name="AutoSftpBox" Content="Ouvrir automatiquement l'explorateur SFTP à côté du terminal" IsChecked="True" Margin="0,2,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Dossier distant" Style="{StaticResource Label}"/>
+                        <TextBox x:Name="RemoteDirBox" Grid.Column="1" Height="28" ToolTip="Dossier ouvert dans l'explorateur SFTP (vide = dossier personnel)"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Tunnels -->
+            <StackPanel x:Name="TunnelSection">
+                <TextBlock Text="TUNNELS SSH" Style="{StaticResource CardTitle}"/>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <ListBox x:Name="TunnelList" Height="58" FontFamily="Cascadia Mono, Consolas" BorderThickness="1"
+                                 Background="{DynamicResource InputBg}" BorderBrush="{DynamicResource Border}"/>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="112"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="62"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="62"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox x:Name="TunnelKind" Height="28" SelectedIndex="0" SelectionChanged="TunnelKind_Changed">
+                                <ComboBoxItem Content="Local (-L)"/>
+                                <ComboBoxItem Content="Distant (-R)"/>
+                                <ComboBoxItem Content="SOCKS (-D)"/>
+                            </ComboBox>
+                            <TextBox x:Name="TunnelBindHost" Grid.Column="1" Height="28" Margin="6,0,0,0" Text="127.0.0.1" ToolTip="Adresse d'écoute"/>
+                            <TextBox x:Name="TunnelBindPort" Grid.Column="2" Height="28" Margin="4,0,0,0" ToolTip="Port d'écoute"/>
+                            <TextBlock Grid.Column="3" Text="&#xE72A;" FontFamily="{StaticResource Icons}" VerticalAlignment="Center" Margin="8,0"
+                                       Foreground="{DynamicResource Muted}"/>
+                            <TextBox x:Name="TunnelDestHost" Grid.Column="4" Height="28" ToolTip="Hôte de destination"/>
+                            <TextBox x:Name="TunnelDestPort" Grid.Column="5" Height="28" Margin="4,0,0,0" ToolTip="Port de destination"/>
+                        </Grid>
+                        <TextBlock x:Name="TunnelHelp" FontSize="11.5" Foreground="{DynamicResource Muted}" Margin="2,6,0,0" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,5" Click="AddTunnel_Click">
+                                <TextBlock><Run Text="&#xE710;" FontFamily="{StaticResource Icons}"/><Run Text="  Ajouter"/></TextBlock>
+                            </Button>
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,5" Margin="6,0,0,0" Click="RemoveTunnel_Click">
+                                <TextBlock><Run Text="&#xE74D;" FontFamily="{StaticResource Icons}"/><Run Text="  Supprimer"/></TextBlock>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

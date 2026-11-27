@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="xterm.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #16181d; overflow: hidden; }
+  #t { position: absolute; inset: 6px 4px 4px 8px; }
+  .xterm-viewport::-webkit-scrollbar { width: 10px; }
+  .xterm-viewport::-webkit-scrollbar-thumb { background: #3a3f4b; border-radius: 5px; }
+  .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="t"></div>
+<script src="xterm.js"></script>
+<script src="addon-fit.js"></script>
+<script>
+  const post = m => window.chrome.webview.postMessage(m);
+  const term = new Terminal({
+    fontFamily: '"Cascadia Mono", "Cascadia Code", Consolas, "Courier New", monospace',
+    fontSize: 14,
+    cursorBlink: true,
+    scrollback: 20000,
+    allowProposedApi: true,
+    rightClickSelectsWord: false,
+    theme: {
+      background: '#16181d', foreground: '#d8dee9', cursor: '#00c8aa', cursorAccent: '#16181d',
+      selectionBackground: '#3b4a6b',
+      black: '#1d2026', red: '#e06c75', green: '#98c379', yellow: '#e5c07b', blue: '#61afef',
+      magenta: '#c678dd', cyan: '#56b6c2', white: '#d8dee9',
+      brightBlack: '#5c6370', brightRed: '#ff7b86', brightGreen: '#b5e890', brightYellow: '#ffd68a',
+      brightBlue: '#82c4ff', brightMagenta: '#dc9cf0', brightCyan: '#74d4e0', brightWhite: '#ffffff'
+    }
+  });
+  const fit = new FitAddon.FitAddon();
+  term.loadAddon(fit);
+  term.open(document.getElementById('t'));
+  const doFit = () => { try { fit.fit(); } catch (e) {} };
+  doFit();
+
+  term.onData(d => post({ t: 'in', d }));
+  term.onBinary(d => post({ t: 'in', d }));
+  term.onResize(s => post({ t: 'resize', cols: s.cols, rows: s.rows }));
+  // Copie automatique de la sélection (comme PuTTY / MobaXterm)
+  term.onSelectionChange(() => { const s = term.getSelection(); if (s) post({ t: 'copy', d: s }); });
+  // Clic droit = coller
+  document.addEventListener('contextmenu', e => { e.preventDefault(); post({ t: 'paste' }); });
+  // Ctrl+molette = taille de police
+  document.addEventListener('wheel', e => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const s = Math.max(8, Math.min(32, term.options.fontSize + (e.deltaY < 0 ? 1 : -1)));
+    term.options.fontSize = s; doFit(); post({ t: 'font', size: s });
+  }, { passive: false });
+  term.attachCustomKeyEventHandler(e => {
+    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+      const s = term.getSelection(); if (s) post({ t: 'copy', d: s });
+      e.preventDefault(); return false;
+    }
+    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && e.code === 'KeyV') {
+      post({ t: 'paste' }); e.preventDefault(); return false;
+    }
+    return true;
+  });
+  new ResizeObserver(doFit).observe(document.body);
+
+  const b64ToBytes = b64 => {
+    const bin = atob(b64); const a = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i);
+    return a;
+  };
+  window.chrome.webview.addEventListener('message', ev => {
+    const m = ev.data;
+    switch (m.t) {
+      case 'out': term.write(b64ToBytes(m.d)); break;
+      case 'text': term.write(m.d); break;
+      case 'paste': term.paste(m.d); break;
+      case 'focus': term.focus(); break;
+      case 'clear': term.clear(); break;
+      case 'font': term.options.fontSize = m.size; doFit(); break;
+    }
+  });
+
+  post({ t: 'ready', cols: term.cols, rows: term.rows });
+  term.focus();
+</script>
+</body>
+</html>

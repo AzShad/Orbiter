@@ -1,0 +1,63 @@
+name: Release
+
+# Chaque tag vX.Y.Z poussé (via scripts/release.ps1) construit l'installeur
+# et publie une Release GitHub avec les notes du CHANGELOG.
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier que le tag correspond au fichier VERSION
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION -Raw).Trim()
+          if ("v$v" -ne "${{ github.ref_name }}") { throw "Tag ${{ github.ref_name }} != VERSION $v" }
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Installer Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup --no-progress -y }
+
+      - name: Compiler
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Extraire les notes de version
+        shell: pwsh
+        run: |
+          $v = (Get-Content VERSION -Raw).Trim()
+          $log = Get-Content CHANGELOG.md -Raw
+          $m = [regex]::Match($log, "(?s)## \[$([regex]::Escape($v))\][^\n]*\n(.*?)(?=\n## \[|\z)")
+          $notes = if ($m.Success) { $m.Groups[1].Value.Trim() } else { "Orbiter $v" }
+          Set-Content release-notes.md $notes -Encoding utf8
+
+      - name: Publier la Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Orbiter ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: |
+            dist/Orbiter-Setup-*.exe
+            dist/Orbiter-Portable-*.exe
+
+      - name: Artefacts (lancement manuel)
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbiter
+          path: dist/*.exe

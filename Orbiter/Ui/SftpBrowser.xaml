@@ -1,0 +1,101 @@
+<UserControl x:Class="Orbiter.Ui.SftpBrowser"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource WindowBg}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Barre d'outils -->
+        <WrapPanel Grid.Row="0" Margin="4,4,4,0">
+            <Button Style="{StaticResource IconButton}" Content="&#xE74A;" ToolTip="Dossier parent" Click="Up_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE80F;" ToolTip="Dossier personnel" Click="Home_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE72C;" ToolTip="Actualiser (F5)" Click="Refresh_Click"/>
+            <Separator Width="1" Margin="3,4" Background="{DynamicResource Border}"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE8F4;" ToolTip="Nouveau dossier" Click="NewFolder_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE898;" ToolTip="Envoyer des fichiers" Click="UploadFiles_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE8B7;" ToolTip="Envoyer un dossier" Click="UploadFolder_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE896;" ToolTip="Télécharger la sélection" Click="Download_Click"/>
+            <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="Supprimer (Suppr)" Click="Delete_Click"/>
+            <Button x:Name="CdButton" Style="{StaticResource IconButton}" Content="&#xE756;" ToolTip="Aller dans ce dossier dans le terminal" Click="Cd_Click" Visibility="Collapsed"/>
+        </WrapPanel>
+
+        <TextBox x:Name="PathBox" Grid.Row="1" Margin="6,4,6,4" Height="26" FontFamily="Consolas"
+                 KeyDown="PathBox_KeyDown" ToolTip="Chemin distant (Entrée pour y aller)"/>
+
+        <ListView x:Name="List" Grid.Row="2" BorderThickness="0,1,0,1" BorderBrush="{DynamicResource Border}"
+                  SelectionMode="Extended" AllowDrop="True"
+                  MouseDoubleClick="List_DoubleClick" KeyDown="List_KeyDown"
+                  DragOver="List_DragOver" Drop="List_Drop">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Ouvrir / modifier" Click="Open_Click"/>
+                    <MenuItem Header="Télécharger…" Click="Download_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Renommer… (F2)" Click="Rename_Click"/>
+                    <MenuItem Header="Permissions (chmod)…" Click="Chmod_Click"/>
+                    <MenuItem Header="Supprimer (Suppr)" Click="Delete_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Nouveau dossier…" Click="NewFolder_Click"/>
+                    <MenuItem Header="Envoyer des fichiers…" Click="UploadFiles_Click"/>
+                    <MenuItem Header="Copier le chemin" Click="CopyPath_Click"/>
+                    <MenuItem Header="Actualiser (F5)" Click="Refresh_Click"/>
+                </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Nom" Width="180">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource Icons}" Foreground="{Binding GlyphBrush}"
+                                               Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Taille" Width="70">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SizeText}" HorizontalAlignment="Right" Foreground="{DynamicResource Muted}"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Modifié" Width="112" DisplayMemberBinding="{Binding ModifiedText}"/>
+                    <GridViewColumn Header="Droits" Width="82" DisplayMemberBinding="{Binding Permissions}"/>
+                    <GridViewColumn Header="UID" Width="50" DisplayMemberBinding="{Binding Owner}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- Barre d'état / transferts -->
+        <Grid Grid.Row="3" Margin="6,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock x:Name="StatusText" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis"/>
+                <ProgressBar x:Name="Progress" Height="5" Margin="0,3,0,0" Maximum="1" Visibility="Collapsed"
+                             Foreground="{DynamicResource Accent}"/>
+            </StackPanel>
+            <Button x:Name="CancelButton" Grid.Column="1" Style="{StaticResource FlatButton}" Content="Annuler"
+                    Margin="6,0,0,0" Visibility="Collapsed" Click="CancelTransfer_Click"/>
+        </Grid>
+
+        <!-- Superposition : connexion / déconnecté -->
+        <Border x:Name="Overlay" Grid.RowSpan="4" Background="{DynamicResource OverlayBg}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="300">
+                <TextBlock x:Name="OverlayText" Text="Connexion SFTP…" TextWrapping="Wrap" TextAlignment="Center"
+                           Foreground="{DynamicResource Muted}" Margin="0,0,0,10"/>
+                <Button x:Name="ReconnectButton" Style="{StaticResource PrimaryButton}" Content="Reconnecter"
+                        HorizontalAlignment="Center" Click="Reconnect_Click" Visibility="Collapsed"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
