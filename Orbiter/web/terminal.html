@@ -143,17 +143,19 @@
     leave: () => { tip.style.display = 'none'; }
   }));
 
+  // touche reconnue par sa lettre (AZERTY…) ou, à défaut, par sa position
+  const isKey = (e, letter) => (e.key && e.key.toLowerCase() === letter) || e.code === 'Key' + letter.toUpperCase();
   term.attachCustomKeyEventHandler(e => {
     // Ctrl+F : recherche (sauf dans vim, nano, htop… qui utilisent Ctrl+F) ; Ctrl+Maj+F : toujours la recherche
-    if (e.type === 'keydown' && e.ctrlKey && !e.altKey && e.code === 'KeyF'
+    if (e.type === 'keydown' && e.ctrlKey && !e.altKey && isKey(e, 'f')
         && (e.shiftKey || term.buffer.active.type !== 'alternate')) {
       openFind(); e.preventDefault(); return false;
     }
-    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && isKey(e, 'c')) {
       const s = term.getSelection(); if (s) post({ t: 'copy', d: s });
       e.preventDefault(); return false;
     }
-    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && e.code === 'KeyV') {
+    if (e.type === 'keydown' && e.ctrlKey && e.shiftKey && isKey(e, 'v')) {
       post({ t: 'paste' }); e.preventDefault(); return false;
     }
     return true;

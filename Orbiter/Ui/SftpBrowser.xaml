@@ -22,6 +22,8 @@
             <Button Style="{StaticResource IconButton}" Content="&#xE896;" ToolTip="Télécharger la sélection" Click="Download_Click"/>
             <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="Supprimer (Suppr)" Click="Delete_Click"/>
             <Button x:Name="CdButton" Style="{StaticResource IconButton}" Content="&#xE756;" ToolTip="Aller dans ce dossier dans le terminal" Click="Cd_Click" Visibility="Collapsed"/>
+            <Button x:Name="FollowButton" Style="{StaticResource IconButton}" Content="&#xE71B;" Click="Follow_Click" Visibility="Collapsed"
+                    ToolTip="Suivre le dossier du terminal"/>
         </WrapPanel>
 
         <TextBox x:Name="PathBox" Grid.Row="1" Margin="6,4,6,4" Height="26" FontFamily="Consolas"

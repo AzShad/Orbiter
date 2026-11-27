@@ -33,6 +33,10 @@ public sealed class TerminalView : Grid, IDisposable
     public event Action<SessionState>? StateChanged;
     /// <summary>Déclenché à chaque connexion réussie.</summary>
     public event Action? Connected;
+    /// <summary>Dossier courant annoncé par le shell (séquence OSC 7), sur le fil de l'interface.</summary>
+    public event Action<string>? DirectoryChanged;
+    /// <summary>Dernier dossier courant annoncé par le shell, ou null s'il n'en annonce pas.</summary>
+    public string? CurrentDirectory { get; private set; }
 
     public TerminalView(SessionProfile profile)
     {
@@ -292,6 +296,7 @@ public sealed class TerminalView : Grid, IDisposable
         StartTunnels(client);
         SetState(SessionState.Connected);
 
+        CurrentDirectory = null;
         var reader = new Thread(() => ReadLoop(shell, gen)) { IsBackground = true, Name = "ssh-read" };
         reader.Start();
         Connected?.Invoke();
@@ -301,6 +306,7 @@ public sealed class TerminalView : Grid, IDisposable
     private void ReadLoop(ShellStream shell, int gen)
     {
         var buf = new byte[32 * 1024];
+        var osc7 = new Osc7Scanner();
         Exception? error = null;
         try
         {
@@ -309,6 +315,13 @@ public sealed class TerminalView : Grid, IDisposable
                 var n = shell.Read(buf, 0, buf.Length);
                 if (n <= 0) break;
                 Enqueue(buf, n);
+                if (osc7.Feed(buf.AsSpan(0, n)) is { } dir)
+                    Dispatcher.BeginInvoke(() =>
+                    {
+                        if (gen != _generation || dir == CurrentDirectory) return;
+                        CurrentDirectory = dir;
+                        DirectoryChanged?.Invoke(dir);
+                    });
             }
         }
         catch (Exception ex) { error = ex; }

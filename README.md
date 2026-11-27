@@ -18,6 +18,7 @@ Prérequis : Windows 10 1809+ / 11 x64, avec Microsoft Edge WebView2 Runtime (d�
   - téléchargement, renommer (F2), supprimer (Suppr), nouveau dossier, chmod, copier le chemin
   - double-clic sur un fichier = ouverture avec l'appli Windows associée, avec proposition de renvoi après modification
   - bouton « terminal » : fait un `cd` vers le dossier courant dans le terminal
+  - bouton « suivre » : le panneau suit le dossier du terminal à chaque `cd` (bash et zsh)
   - progression, débit et annulation des transferts
 - Tunnels SSH : local (-L), distant (-R), SOCKS dynamique (-D)
 - Authentification : mot de passe / keyboard-interactive, clés privées OpenSSH, PEM et PuTTY .ppk (avec passphrase)

@@ -71,6 +71,7 @@ public partial class SftpBrowser : UserControl, IDisposable
         InitializeComponent();
         _profile = profile;
         CdButton.Visibility = linkedToTerminal ? Visibility.Visible : Visibility.Collapsed;
+        FollowButton.Visibility = linkedToTerminal ? Visibility.Visible : Visibility.Collapsed;
         _progressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _progressTimer.Tick += (_, _) => UpdateProgress();
         if (!linkedToTerminal) Loaded += (_, _) => { if (State == SessionState.Idle) Connect(); };
@@ -135,6 +136,7 @@ public partial class SftpBrowser : UserControl, IDisposable
 
         var start = string.IsNullOrWhiteSpace(_profile.InitialRemoteDir) ? _home : _profile.InitialRemoteDir!;
         if (State == SessionState.Connected && _cwd != "/" && _cwd != _home) start = _cwd; // reconnexion : on reste où on était
+        if (StartDirectoryProvider?.Invoke() is { } follow) start = follow;              // suivi du terminal
         await NavigateAsync(start);
     }
 
@@ -250,6 +252,62 @@ public partial class SftpBrowser : UserControl, IDisposable
     }
 
     private void Cd_Click(object sender, RoutedEventArgs e) => ChangeDirectoryInTerminal?.Invoke(_cwd);
+
+    // ---------- Suivi du dossier du terminal ----------
+
+    /// <summary>Dossier affiché.</summary>
+    public string CurrentDir => _cwd;
+
+    /// <summary>Dossier à ouvrir à la connexion à la place du dossier habituel (null = comportement normal).</summary>
+    public Func<string?>? StartDirectoryProvider { get; set; }
+
+    /// <summary>Clic sur le bouton « suivre le terminal » (l'état est géré par la vue de session).</summary>
+    public event Action? FollowClicked;
+
+    private void Follow_Click(object sender, RoutedEventArgs e) => FollowClicked?.Invoke();
+
+    /// <summary>Bouton « suivre » allumé (couleur d'accent) ou éteint.</summary>
+    public void ShowFollowing(bool on)
+    {
+        if (on)
+        {
+            FollowButton.SetResourceReference(ForegroundProperty, "Accent");
+            FollowButton.SetResourceReference(BackgroundProperty, "AccentSoft");
+            FollowButton.ToolTip = "Suit le dossier du terminal (cliquer pour arrêter)";
+        }
+        else
+        {
+            FollowButton.ClearValue(ForegroundProperty);
+            FollowButton.ClearValue(BackgroundProperty);
+            FollowButton.ToolTip = "Suivre le dossier du terminal";
+        }
+    }
+
+    /// <summary>
+    /// Installe ~/.orbiter_cwd.sh et le fait charger par ~/.bashrc (et ~/.zshrc s'il existe), sans dupliquer la ligne.
+    /// Renvoie les fichiers de démarrage modifiés.
+    /// </summary>
+    public async Task<List<string>> InstallCwdHookAsync()
+    {
+        var c = Client ?? throw new InvalidOperationException("Explorateur SFTP non connecté.");
+        var home = _home;
+        return await Task.Run(() =>
+        {
+            var changed = new List<string>();
+            c.WriteAllText(Combine(home, CwdHook.FileName), CwdHook.Script);
+            foreach (var rc in new[] { ".bashrc", ".zshrc" })
+            {
+                var path = Combine(home, rc);
+                var exists = c.Exists(path);
+                if (!exists && rc != ".bashrc") continue;
+                if (exists && c.ReadAllText(path).Contains(CwdHook.FileName)) continue;
+                if (exists) c.AppendAllText(path, CwdHook.RcBlock);
+                else c.WriteAllText(path, CwdHook.RcBlock.TrimStart('\n'));
+                changed.Add("~/" + rc);
+            }
+            return changed;
+        });
+    }
 
     private List<RemoteItem> Selected() => List.SelectedItems.Cast<RemoteItem>().Where(i => !i.IsParent).ToList();
 

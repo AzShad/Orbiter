@@ -20,6 +20,8 @@ public class AppSettings
     /// <summary>Dossiers de sessions créés (y compris vides) et dossiers repliés dans la liste.</summary>
     public List<string> SessionFolders { get; set; } = new();
     public List<string> CollapsedFolders { get; set; } = new();
+    /// <summary>Le panneau SFTP suit le dossier du terminal (dernier choix, appliqué aux nouveaux onglets).</summary>
+    public bool SftpFollowTerminal { get; set; }
 
     [JsonIgnore]
     public List<SavedCommand> CommandList => Commands ??= SavedCommand.Examples();

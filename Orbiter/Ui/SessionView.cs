@@ -54,6 +54,56 @@ public sealed class SessionView : Grid, IDisposable
 
         if (profile.AutoSftpPanel)
             Terminal.Connected += () => ShowSftpPanel(true);
+        Terminal.DirectoryChanged += _ => FollowNow();
+    }
+
+    // ---------- Le panneau SFTP suit le dossier du terminal ----------
+
+    private bool _follow = ThemeManager.Settings.SftpFollowTerminal;
+
+    private void FollowNow()
+    {
+        if (!_follow || Sftp is not { State: SessionState.Connected } s || Terminal?.CurrentDirectory is not { } dir) return;
+        if (dir != s.CurrentDir) _ = s.NavigateAsync(dir);
+    }
+
+    private async void ToggleFollow()
+    {
+        if (Sftp == null || Terminal == null) return;
+        if (_follow) { SetFollow(false); return; }
+
+        // le shell annonce déjà son dossier : rien à installer
+        if (Terminal.CurrentDirectory != null || Terminal.State != SessionState.Connected) { SetFollow(true); FollowNow(); return; }
+
+        var owner = Window.GetWindow(this);
+        var choice = ModernDialog.Show(owner, "Suivre le dossier du terminal",
+            "Ce serveur n'indique pas encore à Orbiter dans quel dossier se trouve le terminal. Orbiter peut y installer un petit script " +
+            $"(~/{CwdHook.FileName}), chargé par ~/.bashrc (et ~/.zshrc s'il existe). Il ne change rien à l'affichage du terminal " +
+            "et fonctionne avec bash et zsh. Pour le désactiver plus tard, supprimez ce fichier.",
+            DialogKind.Question, Dialogs.Details(("Ajouté à ~/.bashrc", CwdHook.RcLine, true)),
+            new DialogButton("Annuler", "no"),
+            new DialogButton("Installer sur ce serveur", "yes", Primary: true, IsDefault: true));
+        if (choice != "yes") return;
+        try
+        {
+            await Sftp.InstallCwdHookAsync();
+        }
+        catch (Exception ex)
+        {
+            Dialogs.Error(owner, "Installation impossible", ex.Message);
+            return;
+        }
+        SetFollow(true);
+        // active le suivi tout de suite dans le shell ouvert (les prochaines connexions le chargent toutes seules)
+        Terminal.SendCommand(CwdHook.ActivateNow, run: true);
+    }
+
+    private void SetFollow(bool on)
+    {
+        _follow = on;
+        Sftp?.ShowFollowing(on);
+        ThemeManager.Settings.SftpFollowTerminal = on;
+        ThemeManager.Settings.Save();
     }
 
     public bool SftpPanelVisible => _sftpColumn != null && _sftpColumn.Width.Value > 0;
@@ -69,6 +119,9 @@ public sealed class SessionView : Grid, IDisposable
                 Sftp = new SftpBrowser(Profile, linkedToTerminal: true);
                 Sftp.ChangeDirectoryInTerminal += path =>
                     Terminal.SendInput("cd '" + path.Replace("'", "'\\''") + "'\r");
+                Sftp.ShowFollowing(_follow);
+                Sftp.FollowClicked += ToggleFollow;
+                Sftp.StartDirectoryProvider = () => _follow ? Terminal.CurrentDirectory : null;
                 SetColumn(Sftp, 0);
                 Children.Add(Sftp);
             }

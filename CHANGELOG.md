@@ -2,6 +2,11 @@
 
 Toutes les versions d'Orbiter. Format : [SemVer](https://semver.org/lang/fr/) — `MAJEUR.MINEUR.CORRECTIF`.
 
+## [1.8.0] - 2026-11-28
+- Le panneau SFTP peut suivre le dossier du terminal : activez le bouton lien de sa barre d'outils, et chaque cd dans le terminal ouvre le même dossier dans l'explorateur
+- Si le serveur ne communique pas encore son dossier courant, Orbiter propose d'y installer un petit script (bash et zsh), sans rien changer à l'affichage du terminal
+- Les raccourcis du terminal (Ctrl+F, Ctrl+Maj+C, Ctrl+Maj+V) fonctionnent de façon plus fiable selon le clavier
+
 ## [1.7.0] - 2026-11-28
 - Dossiers de sessions : rangez vos serveurs par groupe (bouton « Nouveau dossier » sous la liste, ou champ Dossier dans la fenêtre de session)
 - Glisser-déposer une session sur un dossier pour l'y ranger ; clic sur un dossier pour le replier ou le déplier (mémorisé)
